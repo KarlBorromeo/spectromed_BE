@@ -99,6 +99,14 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                     title: 'Service Report',
                     author: 'SpectroMed',
                     },
+                    background: [
+                      {
+                        image: 'src/assets/sr_backgound.png', // Replace with your Base64 string
+                        width: 595.28, // Adjust the width of the background image
+                        height: 841.89, // Adjust the height of the background image
+                        opacity: 1, // Optional: Set transparency (0.1 to 1.0)
+                      },
+                    ],
                     // content: [documentParts.html],
                     ...docDefaultStyle,
                     header: documentParts.header

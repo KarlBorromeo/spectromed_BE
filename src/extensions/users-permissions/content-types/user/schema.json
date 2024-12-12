@@ -65,21 +65,25 @@
       "inversedBy": "users",
       "configurable": false
     },
-    "fullname": {
+    "firstName": {
       "type": "string"
     },
     "employeeId": {
       "type": "string"
     },
     "signature": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images",
         "files",
         "videos",
         "audios"
-      ],
-      "type": "media",
-      "multiple": false
+      ]
+    },
+    "lastName": {
+      "type": "string"
     }
   }
 }

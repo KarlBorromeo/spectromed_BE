@@ -9,6 +9,7 @@ const jsdom = require('jsdom');
 const pdfPrinter = require('pdfmake');
 const htmlToPdfMake = require('html-to-pdfmake');
 const moment = require('moment');
+const sharp = require('sharp');
 
 // Configuring default value of pdfmake
 const { JSDOM } = jsdom;
@@ -87,6 +88,16 @@ const docDefaultStyle = {
 const { createCoreService } = require('@strapi/strapi').factories;
 
 module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) => ({
+  // BG REMOVE AND IMAGE TO BUFFER
+    async getTransparentImage(imagePath) {
+      const imageBuffer = await sharp(imagePath)
+        .flatten({ background: { r: 255, g: 255, b: 255, alpha: 0 } }) // Make white background transparent
+        .toFormat('png') // Ensure output is PNG to support transparency
+        .toBuffer(); // Return as Buffer
+    
+      return imageBuffer;
+    },
+
     async printServiceReport(data){
         return new Promise(async (resolve, reject) => {
             try {
@@ -132,6 +143,10 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
     },
 
     async BufferServiceReport(data){
+        // FETCH SIGNATURE WITHOUT BACKGROUND
+        const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
+        const imageBuffer = await this.getTransparentImage(imagePath);
+
         const header = {
           margin: [72.5,25,73,0],
           stack: [
@@ -188,7 +203,10 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                       margin: [-9,3,0,-1],
                                     },
                                     // SR NO VALUE
-                                    {}
+                                    {
+                                      text: data.form.srNumber,
+                                      noWrap: true,
+                                    }
                                   ],
                                 ],
                               }
@@ -213,7 +231,10 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                       margin: [-1,3,0,-1],
                                     },
                                     // DATE VALUE
-                                    {}
+                                    {
+                                      text: data.form.date,
+                                      noWrap: true,
+                                    }
                                   ],
                                 ],
                               }
@@ -251,11 +272,11 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // BUSINESS AND CUSTOMER DATA ROW
                   [
                     {
-                      text: '56',
+                      text: data.form.businessName,
                       colSpan: 2,
                     },{},
                     {
-                      text: '37',
+                      text: data.form.customerName,
                       colSpan: 2,
                     },{},
                   ],
@@ -277,13 +298,13 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // Address AND Contact DATA ROW
                   [
                     {
-                     text: '108',
+                     text: data.form.address,
                      colSpan: 2,
                      lineHeight: 1.6,
                      margin: [0,0,0,-4],
                     },{},
                     {
-                      text: '74',
+                      text: 'CP #: '+(data.form.mobileNumber ? '0'+data.form.mobileNumber  :'') + '\n' + 'Tele #: ' + data.form.telephoneNumber,
                       colSpan: 2,
                       lineHeight: 1.6,
                       margin: [0,0,0,-4],
@@ -316,7 +337,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                       // SYSTEM TYPE DATA
                       [
                         {
-                          text: '',
+                          text: data.form.systemType,
                           colSpan: 2,
                           border: [true,true,false,true],
                         },{},
@@ -333,7 +354,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                       // SERIAL DATA
                       [
                         {
-                          text: '',
+                          text: data.form.serialNumber,
                           colSpan: 2,
                           border: [true,true,false,true],
                         },{},
@@ -367,7 +388,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body: [
                               [
                                 // REPAIR BOX
-                                {},
+                                {
+                                  ...(data.form.serviceType === 'Repair' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  ),
+                                },
                                 {
                                   text: 'Repair',
                                   fontSize: 7,
@@ -375,7 +406,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   border: [false,false,]
                                 },
                                 // PM CHANGE BOX
-                                {},
+                                {
+                                  ...(data.form.serviceType === 'PM-Charge' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  ),
+                                },
                                 {
                                   text: 'PM-Charged',
                                   fontSize: 7,
@@ -384,7 +425,25 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   border: [false,false,]
                                 },
                                 // OTHERS BOX
-                                {},
+                                {
+                                  ...(
+                                    (
+                                      data.form.serviceType === 'Repair'||
+                                      data.form.serviceType === 'PM(Warrantly)'||
+                                      data.form.serviceType === 'PM-SC'||
+                                      data.form.serviceType === 'PM-Charge'||
+                                      data.form.serviceType === 'Upgrade'||
+                                      data.form.serviceType === 'Installation'
+                                    ) 
+                                    ? { text: '' }
+                                    : { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                  ),
+                                },
                                 {
                                   text: 'Others',
                                   fontSize: 7,
@@ -408,7 +467,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body: [
                               [
                                 // PM (Warranty) BOX
-                                {},
+                                {
+                                  ...(data.form.serviceType === 'PM(Warrantly)' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  ),
+                                },
                                 {
                                   text: 'PM (Warranty)',
                                   fontSize: 7,
@@ -416,7 +485,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   border: [false,false,]
                                 },
                                 // Upgrade BOX
-                                {},
+                                {
+                                  ...(data.form.serviceType === 'Upgrade' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  ),
+                                },
                                 {
                                   text: 'Upgrade',
                                   fontSize: 7,
@@ -441,7 +520,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body: [
                               [
                                 // PM-SC BOX
-                                {},
+                                {
+                                  ...(data.form.serviceType === 'PM-SC' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  ),
+                                },
                                 {
                                   text: 'PM-SC',
                                   fontSize: 7,
@@ -449,7 +538,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   border: [false,false,]
                                 },
                                 // Installation BOX
-                                {},
+                                {
+                                  ...(data.form.serviceType === 'Installation' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  ),
+                                },
                                 {
                                   text: 'Installation',
                                   fontSize: 7,
@@ -491,7 +590,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // REASON FOR SERVICE DATA ROW
                   [
                     {
-                      text: '190',
+                      text: data.form.reason,
                       colSpan: 2,
                       lineHeight: 1.6,
                       margin: [0,0,0,-4],
@@ -508,7 +607,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // SERVICE RENDERED DATA ROW
                   [
                     {
-                      text:'950',
+                      text: data.form.serviceRendered,
                       colSpan:2,
                       lineHeight: 1.6,
                       margin: [0,0,0,-4],
@@ -540,7 +639,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                       // RECOMMENDATIONS DATA
                       [
                         {
-                          text: '220',
+                          text: data.form.recommendation,
                           colSpan: 2,
                           lineHeight: 1.6,
                           margin: [0,0,0,-4],
@@ -577,7 +676,17 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body: [
                               [
                                 // Operates Normally BOX
-                                {},
+                                {
+                                  ...(data.form.recommendChoice === 'Operates Normally' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  )
+                                },
                                 {
                                   text: 'Operates Normally',
                                   fontSize: 7,
@@ -585,7 +694,22 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   border: [false,false,]
                                 },
                                 // Others BOX
-                                {},
+                                {
+                                  ...(
+                                    (
+                                      data.form.recommendChoice === 'Operates Normally' ||
+                                      data.form.recommendChoice === 'Awaiting Parts' ||
+                                      data.form.recommendChoice === 'Needs Recall'
+                                    )
+                                    ? { text: '' }
+                                    : { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                  )
+                                },
                                 {
                                   text: 'Others',
                                   fontSize: 7,
@@ -595,7 +719,15 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                 },
                                 // Underline value
                                 {
-                                  text: '',
+                                  ...(
+                                    (
+                                      data.form.recommendChoice === 'Operates Normally' ||
+                                      data.form.recommendChoice === 'Awaiting Parts' ||
+                                      data.form.recommendChoice === 'Needs Recall'
+                                    )
+                                    ? { text: '' }
+                                    : { text: data.form.recommendChoice.substring(0, 6) }
+                                  ),
                                   noWrap: true,
                                   margin:[-3,0,0,-3],
                                   border: [false,false,false,true],
@@ -616,20 +748,39 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body: [
                               [
                                 // Awaiting Parts BOX
-                                {},
+                                {
+                                  ...(data.form.recommendChoice === 'Awaiting Parts' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  )
+                                },
                                 {
                                   text: 'Awaiting Parts',
                                   fontSize: 7,
                                   margin:[3,0,0,-3],
                                   border: [false,false,]
                                 },
-                                // UNDERLINE
+                                // SPACE
                                 {
                                   text: '',
                                   border: [false,false]
                                 },
+                                // UNDERLINE
                                 {
-                                  text: '',
+                                  ...(
+                                    (
+                                      data.form.recommendChoice === 'Operates Normally' ||
+                                      data.form.recommendChoice === 'Awaiting Parts' ||
+                                      data.form.recommendChoice === 'Needs Recall'
+                                    )
+                                    ? { text: '' }
+                                    : { text: data.form.recommendChoice.substring(6, 18) }
+                                  ),
                                   noWrap: true,
                                   margin:[0,0,0,-3],
                                   border: [false,false,false,true],
@@ -651,20 +802,38 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body: [
                               [
                                 // Needs Recall BOX
-                                {},
+                                {
+                                  ...(data.form.recommendChoice === 'Needs Recall' 
+                                    ? { 
+                                        image: 'src/assets/checkmark.png', 
+                                        height: 10, 
+                                        width: 10, 
+                                        margin: [-5, -2, 0, -4] 
+                                      }
+                                    : { text: '' }
+                                  )
+                                },
                                 {
                                   text: 'Needs Recall',
                                   fontSize: 7,
                                   margin:[3,0,0,-3],
                                   border: [false,false,]
                                 },
-                                // UNDERLINE
+                                // SPACE
                                 {
                                   text: '',
                                   border: [false,false]
                                 },
                                 {
-                                  text: '',
+                                  ...(
+                                    (
+                                      data.form.recommendChoice === 'Operates Normally' ||
+                                      data.form.recommendChoice === 'Awaiting Parts' ||
+                                      data.form.recommendChoice === 'Needs Recall'
+                                    )
+                                    ? { text: '' }
+                                    : { text: data.form.recommendChoice.substring(18) }
+                                  ),
                                   noWrap: true,
                                   margin:[0,0,0,-3],
                                   border: [false,false,false,true],
@@ -719,95 +888,115 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // DATA FIRST ROW
                   [
                     {
-                      text:'',
-                      alignment: '',
-                    },
-                    {
-                      text: '26',
+                      text: data.form.partsReplaced[0].quantity || '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '28',
+                      text: data.form.partsReplaced[0].partItem || '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '44',
+                      text: data.form.partsReplaced[0].pnsn || '',
+                      noWrap: true,
+                      alignment: 'center',
+                    },
+                    {
+                      text: data.form.partsReplaced[0].remarks || '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                   ],
                   // DATA SECOND ROW
                   [
                     {
-                      text:'',
-                      alignment: '',
-                    },
-                    {
-                      text: '',
+                      text: data.form.partsReplaced[1] ? data.form.partsReplaced[1].quantity : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[1] ? data.form.partsReplaced[1].partItem : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[1] ? data.form.partsReplaced[1].pnsn : '',
+                      noWrap: true,
+                      alignment: 'center',
+                    },
+                    {
+                      text: data.form.partsReplaced[1] ? data.form.partsReplaced[1].remarks : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                   ],
                   // DATA THIRD ROW
                   [
                     {
-                      text:'',
-                      alignment: '',
-                    },
-                    {
-                      text: '',
+                      text: data.form.partsReplaced[2] ? data.form.partsReplaced[2].quantity : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[2] ? data.form.partsReplaced[2].partItem : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[2] ? data.form.partsReplaced[2].pnsn : '',
+                      noWrap: true,
+                      alignment: 'center',
+                    },
+                    {
+                      text: data.form.partsReplaced[2] ? data.form.partsReplaced[2].remarks : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                   ],
                   // DATA FOURTH ROW
                   [
                     {
-                      text:'',
-                      alignment: '',
-                    },
-                    {
-                      text: '',
+                      text: data.form.partsReplaced[3] ? data.form.partsReplaced[3].quantity : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[3] ? data.form.partsReplaced[3].partItem : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[3] ? data.form.partsReplaced[3].pnsn : '',
+                      noWrap: true,
+                      alignment: 'center',
+                    },
+                    {
+                      text: data.form.partsReplaced[3] ? data.form.partsReplaced[3].remarks : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                   ],
                   // DATA FIFTH ROW
                   [
                     {
-                      text:'',
-                      alignment: '',
-                    },
-                    {
-                      text: '',
+                      text: data.form.partsReplaced[4] ? data.form.partsReplaced[4].quantity : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[4] ? data.form.partsReplaced[4].partItem : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: '',
+                      text: data.form.partsReplaced[4] ? data.form.partsReplaced[4].pnsn : '',
+                      noWrap: true,
+                      alignment: 'center',
+                    },
+                    {
+                      text: data.form.partsReplaced[4] ? data.form.partsReplaced[4].remarks : '',
+                      noWrap: true,
                       alignment: 'center',
                     },
                   ],
@@ -832,24 +1021,28 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                           margin: [14,0,5,0],
                           table:{
                             widths:['100%'],
-                            heights: [22,7,7],
+                            heights: [22,6,7],
                             body:[
                               // Signature
                               [
                                 {
-                                  text: '',
+                                  image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
+                                  height: 30,
+                                  width: 70,
+                                  alignment: 'center',
                                   noWrap: true,
                                   border: [false,false],
-                                  margin: [0,0,2,0],
+                                  margin: [0,3,0,-30],
                                 },
                               ],
                               // Name
                               [
                                 {
-                                  text: '',
+                                  text: `${data.user.firstName.toUpperCase()} ${data.user.lastName.toUpperCase()}`,
+                                  alignment: 'center',
                                   noWrap: true,
                                   border: [false,false,false,true],
-                                  margin: [0,0,2,0],
+                                  margin: [0,0,0,-10],
                                 },
                               ],
                               // Title
@@ -859,7 +1052,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   alignment: 'center',
                                   border:[false,false],
                                   lineHeight: 1.6,
-                                  margin: [0,0,0,-7],
+                                  margin: [0,0,0,-5.5],
                                 },
                               ]
                             ],
@@ -890,7 +1083,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   margin: [-1.5,0,0,0],
                                 },
                                 {
-                                  text: '',
+                                  text: data.form.travelTime || '',
+                                  alignment: 'center',
                                   noWrap: true,
                                   border: [false,false,false,true],
                                 },
@@ -903,7 +1097,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   margin: [-1.5,0,0,0],
                                 },
                                 {
-                                  text: '',
+                                  text: data.form.arrivalTime || '',
+                                  alignment: 'center',
                                   noWrap: true,
                                   border: [false,false,false,true],
                                 },
@@ -916,7 +1111,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                   margin: [-1.5,0,0,0],
                                 },
                                 {
-                                  text: '',
+                                  text: data.form.departureTime || '',
+                                  alignment: 'center',
                                   noWrap: true,
                                   border: [false,false,false,true],
                                 },
@@ -963,13 +1159,13 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                       // Start and End Data Row
                       [
                         {
-                          text: '',
+                          text: data.form.startTime,
                           alignment: 'center',
                           border: [false,true,true,true],
                           noWrap: true,
                         },
                         {
-                          text: '',
+                          text: data.form.endTime,
                           alignment: 'center',
                           border: [false,true,true,true],
                           noWrap: true,
@@ -1046,7 +1242,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                               border: [false,false],
                             },
                             {
-                              text: '',
+                              text: data.form.ackDate || '',
+                              alignment: 'center',
                               noWrap: true,
                               border: [false,false,false,true],
                             },

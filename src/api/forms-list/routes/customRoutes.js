@@ -5,6 +5,12 @@ module.exports = {
             path: '/forms-list/service-report/:id',
             handler: 'forms-list.serviceReportPdf',
         },
+
+        {
+            method: 'GET',
+            path: '/forms-list/user/forms/:id',
+            handler: 'forms-list.fetchListById',
+        },
     ],
     
 }

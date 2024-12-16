@@ -19,9 +19,20 @@ module.exports = createCoreController('api::forms-list.forms-list', ({ strapi })
             return ctx.notFound('Data not found');
         }
 
+        const userData = await strapi.db.query('plugin::users-permissions.user').findOne({
+            select: ['firstName', 'lastName'],
+            where : { id: data.userId },
+            populate: true,
+        })
+
+        const finalData = {
+            form: data.formData,
+            user: userData,
+        }
+
         try {
             // Call the service to generate the PDF buffer
-            const buffer = await strapi.service('api::forms-list.forms-list').printServiceReport(data);
+            const buffer = await strapi.service('api::forms-list.forms-list').printServiceReport(finalData);
 
             // Set the response headers to indicate it's a PDF file
             ctx.set('Content-Type', 'application/pdf');
@@ -34,5 +45,35 @@ module.exports = createCoreController('api::forms-list.forms-list', ({ strapi })
             ctx.badRequest('Failed to generate PDF');
         }
     },
+
+    async fetchListById(ctx){
+
+        const { search, limit, offset } = ctx.query
+        const { id } = ctx.params
+
+        // console.log(search, limit, offset, id);
+        // WHERE CONDITION
+        const whereConditions = {
+            userId: id,
+        };
+        if (search) {
+            whereConditions.filename = { $containsi: search }; // Case-insensitive search
+        }
+        const entries = await strapi.db.query('api::forms-list.forms-list').findWithCount({
+            select: ['*'],
+            where: whereConditions,
+            limit: limit,
+            offset: offset,
+            orderBy: { publishedAt: 'DESC' },
+        });
+        
+        // Return both data and pagination info
+
+        // console.log(entries[0],'aw:',entries[1]);
+        return {
+            data: entries[0],
+            total: entries[1]
+        }
+    }
 }));
 

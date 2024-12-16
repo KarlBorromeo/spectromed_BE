@@ -433,7 +433,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                       data.form.serviceType === 'PM-SC'||
                                       data.form.serviceType === 'PM-Charge'||
                                       data.form.serviceType === 'Upgrade'||
-                                      data.form.serviceType === 'Installation'
+                                      data.form.serviceType === 'Installation' ||
+                                      data.form.serviceType === null
                                     ) 
                                     ? { text: '' }
                                     : { 
@@ -699,7 +700,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                     (
                                       data.form.recommendChoice === 'Operates Normally' ||
                                       data.form.recommendChoice === 'Awaiting Parts' ||
-                                      data.form.recommendChoice === 'Needs Recall'
+                                      data.form.recommendChoice === 'Needs Recall' ||
+                                      data.form.recommendChoice === null
                                     )
                                     ? { text: '' }
                                     : { 
@@ -726,7 +728,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                       data.form.recommendChoice === 'Needs Recall'
                                     )
                                     ? { text: '' }
-                                    : { text: data.form.recommendChoice.substring(0, 6) }
+                                    : { text: data.form.recommendChoice ? data.form.recommendChoice.substring(0, 6) : '' }
                                   ),
                                   noWrap: true,
                                   margin:[-3,0,0,-3],
@@ -779,7 +781,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                       data.form.recommendChoice === 'Needs Recall'
                                     )
                                     ? { text: '' }
-                                    : { text: data.form.recommendChoice.substring(6, 18) }
+                                    : { text: data.form.recommendChoice ? data.form.recommendChoice.substring(6, 18) : ''}
                                   ),
                                   noWrap: true,
                                   margin:[0,0,0,-3],
@@ -832,7 +834,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                       data.form.recommendChoice === 'Needs Recall'
                                     )
                                     ? { text: '' }
-                                    : { text: data.form.recommendChoice.substring(18) }
+                                    : { text: data.form.recommendChoice ? data.form.recommendChoice.substring(18) : ''}
                                   ),
                                   noWrap: true,
                                   margin:[0,0,0,-3],

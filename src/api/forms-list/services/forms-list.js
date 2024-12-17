@@ -1041,7 +1041,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                               // Name
                               [
                                 {
-                                  text: `${data.user.firstName.toUpperCase()} ${data.user.lastName.toUpperCase()}`,
+                                  text: `${data.user.firstName ? data.user.firstName.toUpperCase() : ''} ${data.user.lastName ? data.user.lastName.toUpperCase() : ''}`,
                                   alignment: 'center',
                                   noWrap: true,
                                   border: [false,false,false,true],

@@ -9,7 +9,7 @@ const jsdom = require('jsdom');
 const pdfPrinter = require('pdfmake');
 const htmlToPdfMake = require('html-to-pdfmake');
 const moment = require('moment');
-const sharp = require('sharp');
+// const sharp = require('sharp');
 
 // Configuring default value of pdfmake
 const { JSDOM } = jsdom;
@@ -89,14 +89,14 @@ const { createCoreService } = require('@strapi/strapi').factories;
 
 module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) => ({
   // BG REMOVE AND IMAGE TO BUFFER
-    async getTransparentImage(imagePath) {
-      const imageBuffer = await sharp(imagePath)
-        .flatten({ background: { r: 255, g: 255, b: 255, alpha: 0 } }) // Make white background transparent
-        .toFormat('png') // Ensure output is PNG to support transparency
-        .toBuffer(); // Return as Buffer
+    // async getTransparentImage(imagePath) {
+    //   const imageBuffer = await sharp(imagePath)
+    //     .flatten({ background: { r: 255, g: 255, b: 255, alpha: 0 } }) // Make white background transparent
+    //     .toFormat('png') // Ensure output is PNG to support transparency
+    //     .toBuffer(); // Return as Buffer
     
-      return imageBuffer;
-    },
+    //   return imageBuffer;
+    // },
 
     async printServiceReport(data){
         return new Promise(async (resolve, reject) => {
@@ -145,7 +145,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
     async BufferServiceReport(data){
         // FETCH SIGNATURE WITHOUT BACKGROUND
         const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
-        const imageBuffer = await this.getTransparentImage(imagePath);
+        // const imageBuffer = await this.getTransparentImage(imagePath);
 
         const header = {
           margin: [72.5,25,73,0],
@@ -1028,7 +1028,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                               // Signature
                               [
                                 {
-                                  image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
+                                  // image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
+                                  image: imagePath,
                                   height: 30,
                                   width: 70,
                                   alignment: 'center',

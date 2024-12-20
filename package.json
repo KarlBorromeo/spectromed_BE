@@ -17,6 +17,7 @@
     "html-to-pdfmake": "2.4.22",
     "jsdom": "22.1.0",
     "moment": "2.29.4",
+    "nodemailer": "^6.9.16",
     "pdfmake": "0.2.7"
   },
   "author": {

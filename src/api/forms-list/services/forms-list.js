@@ -1219,9 +1219,14 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                           [
                             // Signature Here
                             {
-                              text: '',
+                              // image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
+                              image: data.form.customerSignatureImg,
+                              height: 30,
+                              width: 70,
+                              alignment: 'center',
                               noWrap: true,
                               border: [false,false],
+                              margin: [0,0,0,-15],
                             },
                             {
                               text: '',
@@ -1236,7 +1241,8 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                           // DATA ROW
                           [
                             {
-                              text: '',
+                              text: data.form.customerName.toUpperCase(),
+                              alignment: 'center',
                               noWrap: true,
                               border: [false,false,false,true],
                             },

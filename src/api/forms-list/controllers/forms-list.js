@@ -3,6 +3,16 @@
 /**
  * forms-list controller
  */
+const nodemailer = require("nodemailer")
+const email = process.env.MAILER_USER
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: email,
+    pass: process.env.MAILER_PASS
+  },
+});
 
 const { createCoreController } = require('@strapi/strapi').factories;
 
@@ -36,7 +46,7 @@ module.exports = createCoreController('api::forms-list.forms-list', ({ strapi })
 
             // Set the response headers to indicate it's a PDF file
             ctx.set('Content-Type', 'application/pdf');
-            ctx.set('Content-Disposition', 'attachment; filename=inventory_itr.pdf');
+            ctx.set('Content-Disposition', 'attachment; filename=sprectromed.pdf');
 
             // Send the buffer as the response body
             ctx.body = buffer;
@@ -74,6 +84,63 @@ module.exports = createCoreController('api::forms-list.forms-list', ({ strapi })
             data: entries[0],
             total: entries[1]
         }
-    }
+    },
+
+    async sendPdfToEmail(ctx) {
+        const { id } = ctx.params;
+        const { userId } = ctx.params;
+        const data = ctx.request.body.data
+        // Fetch the data for the given ID
+
+        console.log( id , userId, data);
+
+        const userData = await strapi.db.query('plugin::users-permissions.user').findOne({
+            select: ['firstName', 'lastName'],
+            where : { id: userId },
+            populate: true,
+        })
+
+        const finalData = {
+            form: data.formData,
+            user: userData,
+        }
+
+        try {
+            // Call the service to generate the PDF buffer
+            let buffer
+            if(data.category === 'service-report'){
+                const base64Data = await strapi.service('api::forms-list.forms-list').printServiceReport(finalData);
+
+                // Remove the Base64 prefix if present
+                const base64Content = base64Data.replace(/^data:application\/pdf;base64,/, '');
+
+                // Convert Base64 string to Buffer
+                buffer = Buffer.from(base64Content, 'base64');
+            }
+
+            // SENDING THE EMAIL TO THE RECEPIENT
+            const info = await transporter.sendMail({
+                from: email,
+                to: data.recepient,
+                subject: 'PDF Attachment',
+                text: `Please find the attached PDF. \n\n${data.message}`,
+                attachments: [
+                    {
+                        filename: `${data.filename}.pdf`,
+                        content: buffer,
+                        contentType: 'application/pdf',
+                    },
+                ],
+            })
+
+            if(info){
+                return 'Success'
+            }
+          
+        } catch (error) {
+            console.error('Error Sending PDF:', error);
+            ctx.badRequest('Failed to send PDF');
+        }
+    },
 }));
 

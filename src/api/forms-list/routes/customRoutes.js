@@ -11,6 +11,12 @@ module.exports = {
             path: '/forms-list/user/forms/:id',
             handler: 'forms-list.fetchListById',
         },
+
+        {
+            method: 'POST',
+            path: '/forms-list/email/:id/:userId',
+            handler: 'forms-list.sendPdfToEmail',
+        }
     ],
     
 }

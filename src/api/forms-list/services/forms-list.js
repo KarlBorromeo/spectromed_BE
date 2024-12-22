@@ -144,7 +144,48 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
 
     async BufferServiceReport(data){
         // FETCH SIGNATURE WITHOUT BACKGROUND
-        const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
+        // const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
+        let signatureContent;
+        console.log(data);
+        if(data.user.signature){
+          // If the image exists, use the image configuration
+          signatureContent = {
+            image: imagePath,
+            height: 30,
+            width: 70,
+            alignment: 'center',
+            noWrap: true,
+            border: [false, false],
+            margin: [0, 3, 0, -30],
+          }
+        }else{
+          // If the image doesn't exist, fallback to text
+          signatureContent = {
+            text: '',
+            border: [false, false],
+          };
+        }
+
+        let customerSignatureContent;
+
+        if(data.form.customerSignatureImg){
+          // If the image exists, use the image configuration
+          customerSignatureContent = {
+            image: data.form.customerSignatureImg,
+            height: 30,
+            width: 70,
+            alignment: 'center',
+            noWrap: true,
+            border: [false,false],
+            margin: [0,0,0,-15],
+          }
+        }else{
+          // If the image doesn't exist, fallback to text
+          customerSignatureContent = {
+            text: '',
+            border: [false, false],
+          };
+        }
         // const imageBuffer = await this.getTransparentImage(imagePath);
 
         const header = {
@@ -232,7 +273,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                                     },
                                     // DATE VALUE
                                     {
-                                      text: data.form.date,
+                                      text: data.form.date ? moment(data.form.date).format('MMM DD, YYYY') : '',
                                       noWrap: true,
                                     }
                                   ],
@@ -1027,16 +1068,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                             body:[
                               // Signature
                               [
-                                {
-                                  // image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
-                                  image: imagePath,
-                                  height: 30,
-                                  width: 70,
-                                  alignment: 'center',
-                                  noWrap: true,
-                                  border: [false,false],
-                                  margin: [0,3,0,-30],
-                                },
+                                signatureContent,
                               ],
                               // Name
                               [
@@ -1218,16 +1250,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                           // Signature Row
                           [
                             // Signature Here
-                            {
-                              // image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
-                              image: data.form.customerSignatureImg,
-                              height: 30,
-                              width: 70,
-                              alignment: 'center',
-                              noWrap: true,
-                              border: [false,false],
-                              margin: [0,0,0,-15],
-                            },
+                            customerSignatureContent,
                             {
                               text: '',
                               border: [false,false],
@@ -1241,7 +1264,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                           // DATA ROW
                           [
                             {
-                              text: data.form.customerName.toUpperCase(),
+                              text: data.form.customerSigName ? data.form.customerSigName.toUpperCase() : '',
                               alignment: 'center',
                               noWrap: true,
                               border: [false,false,false,true],
@@ -1251,7 +1274,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                               border: [false,false],
                             },
                             {
-                              text: data.form.ackDate || '',
+                              text: data.form.date ? moment(data.form.date).format('MMMM DD, YYYY') : '',
                               alignment: 'center',
                               noWrap: true,
                               border: [false,false,false,true],

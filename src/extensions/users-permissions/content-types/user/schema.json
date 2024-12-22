@@ -84,6 +84,12 @@
     },
     "lastName": {
       "type": "string"
+    },
+    "srDate": {
+      "type": "string"
+    },
+    "count": {
+      "type": "integer"
     }
   }
 }

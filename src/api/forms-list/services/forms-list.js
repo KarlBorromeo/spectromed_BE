@@ -144,13 +144,13 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
 
     async BufferServiceReport(data){
         // FETCH SIGNATURE WITHOUT BACKGROUND
-        const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
+        // const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
         let signatureContent;
         console.log(data);
         if(data.user.signature){
           // If the image exists, use the image configuration
           signatureContent = {
-            image: imagePath,
+            image: `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`,
             height: 30,
             width: 70,
             alignment: 'center',

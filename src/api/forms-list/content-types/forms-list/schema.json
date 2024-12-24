@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "forms_lists",
+  "info": {
+    "singularName": "forms-list",
+    "pluralName": "forms-lists",
+    "displayName": "formsList",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "filename": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "formData": {
+      "type": "json"
+    },
+    "userId": {
+      "type": "integer"
+    }
+  }
+}

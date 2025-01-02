@@ -146,7 +146,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
         // FETCH SIGNATURE WITHOUT BACKGROUND
         // const imagePath = `public/uploads/${data.user.signature.hash}${data.user.signature.ext}`
         let signatureContent;
-        console.log(data);
+        // console.log(data);
         if(data.user.signature){
           // If the image exists, use the image configuration
           signatureContent = {
@@ -345,7 +345,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                      margin: [0,0,0,-4],
                     },{},
                     {
-                      text: 'CP #: '+(data.form.mobileNumber ? '0'+data.form.mobileNumber  :'') + '\n' + 'Tele #: ' + data.form.telephoneNumber,
+                      text: data.form.customerEmail || '',
                       colSpan: 2,
                       lineHeight: 1.6,
                       margin: [0,0,0,-4],
@@ -931,22 +931,22 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // DATA FIRST ROW
                   [
                     {
-                      text: data.form.partsReplaced[0].quantity || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].quantity : '',
                       noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: data.form.partsReplaced[0].partItem || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].partItem : '',
                       noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: data.form.partsReplaced[0].pnsn || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].pnsn : '',
                       noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: data.form.partsReplaced[0].remarks || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].remarks : '',
                       noWrap: true,
                       alignment: 'center',
                     },

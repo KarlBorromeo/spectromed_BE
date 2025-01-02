@@ -122,7 +122,7 @@ module.exports = createCoreController('api::forms-list.forms-list', ({ strapi })
             const info = await transporter.sendMail({
                 from: email,
                 to: data.recepient,
-                subject: 'PDF Attachment',
+                subject: `${data.filename}`,
                 text: `Please find the attached PDF. \n\n${data.message}`,
                 attachments: [
                     {

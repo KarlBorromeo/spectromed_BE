@@ -345,7 +345,7 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                      margin: [0,0,0,-4],
                     },{},
                     {
-                      text: 'CP #: '+(data.form.mobileNumber ? '0'+data.form.mobileNumber  :'') + '\n' + 'Tele #: ' + data.form.telephoneNumber,
+                      text: data.form.customerEmail || '',
                       colSpan: 2,
                       lineHeight: 1.6,
                       margin: [0,0,0,-4],

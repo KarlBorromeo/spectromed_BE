@@ -931,22 +931,22 @@ module.exports = createCoreService('api::forms-list.forms-list', ({ strapi }) =>
                   // DATA FIRST ROW
                   [
                     {
-                      text: data.form.partsReplaced[0].quantity || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].quantity : '',
                       noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: data.form.partsReplaced[0].partItem || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].partItem : '',
                       noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: data.form.partsReplaced[0].pnsn || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].pnsn : '',
                       noWrap: true,
                       alignment: 'center',
                     },
                     {
-                      text: data.form.partsReplaced[0].remarks || '',
+                      text: data.form.partsReplaced[0] ? data.form.partsReplaced[0].remarks : '',
                       noWrap: true,
                       alignment: 'center',
                     },
